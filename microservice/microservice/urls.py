@@ -24,3 +24,5 @@ urlpatterns = [
     path('registartion', RegistrationView.as_view(), name='registration'),
     path('registartion/<int:id>', ConfirmationView.as_view(), name='confirmation'),
 ]
+
+# from django.contrib.auth import views
