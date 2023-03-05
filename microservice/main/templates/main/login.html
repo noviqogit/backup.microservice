@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="left">
+    <form method="POST">
+        {% csrf_token %}
+<!--        <input name="email" placeholder="E-mail" type="text"/>-->
+<!--        <input name="password" placeholder="Password" type="password"/>-->
+        <input name="login_submit" type="submit" value="Login"/>
+    </form>
+    <form method="GET" action="/registration">
+        <input type="submit" value="Or Sing Up"/>
+    </form>
+</div>
+
+<div class="right">
+    <h1>
+        Backup microservice for your telegram history
+    </h1>
+</div>
+{% endblock %}

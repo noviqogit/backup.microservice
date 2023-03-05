@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="left">
+    <form method="POST">
+        {% csrf_token %}
+        <h1>Sign up</h1>
+<!--        <input name="email" placeholder={{email}} type="text" readonly/>-->
+<!--        <input name="code" placeholder="Verification code" type="text"/>-->
+        <input name="signup_submit" type="submit" value="Send"/>
+    </form>
+</div>
+
+<div class="right">
+    <h1>
+        {% if form %}
+            {% for field in form %}
+                <div class="fieldWrapper">
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+        {% else %}
+            A verification code has been sent to your adress!
+        {% endif %}
+    </h1>
+</div>
+{% endblock %}

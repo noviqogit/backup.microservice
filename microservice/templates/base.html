@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+{% load static %}
+<html dir="ltr" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="{% static 'main/css/base.css' %}" rel="stylesheet">
+</head>
+<body>
+<div id="login-box">
+    {% block content %}
+    {% endblock %}
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="left">
+    <form method="POST">
+        {% csrf_token %}
+        <h1>Sign up</h1>
+<!--        <input name="email" placeholder="E-mail" type="text"/>-->
+<!--        <input name="password1" placeholder="Password" type="password"/>-->
+<!--        <input name="password2" placeholder="Repeat password" type="password"/>-->
+        <input name="signup_submit" type="submit" value="Sign me up"/>
+    </form>
+</div>
+
+<div class="right">
+    <h1>
+        {% for field in form %}
+            <div class="fieldWrapper">
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+    </h1>
+</div>
+{% endblock %}
