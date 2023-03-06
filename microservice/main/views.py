@@ -1,12 +1,14 @@
-from django.shortcuts import render, HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.contrib.auth import get_user_model, login
 
-from .forms import CustomUserCreationForm, ConfirmationForm
+from .forms import CustomUserCreationForm
 from .models import CustomUser
+
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 
 from django.core.mail import EmailMessage
 from .emails.tokens import email_verification_token
@@ -28,6 +30,7 @@ class LoginView(View):
 class RegistrationView(View):
     form = CustomUserCreationForm
     template = 'main/registration.html'
+    success = 'main/confirmation.html'
 
     def get(self, request):
         form = self.form()
@@ -38,7 +41,8 @@ class RegistrationView(View):
         if form.is_valid():
             form.save()
             user = CustomUser.objects.get(email=form.cleaned_data['email'])
-            return HttpResponseRedirect(f'registration/{user.id}')
+            self._send_email_verification(user)
+            return render(request, self.form, context={'email': user.email})
         return render(request, self.form, context={'form': form})
 
     def _send_email_verification(self, user: CustomUser):
@@ -56,12 +60,22 @@ class RegistrationView(View):
 
 
 class ConfirmationView(View):
-    form = ConfirmationForm
-    template = 'main/registration.html'
 
-    def get(self, request, id):
-        form = self.form()
-        return render(request, self.template, context={'form': form})
+    def get_user_from_email_verification_token(self, uidb64, token: str):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = get_user_model().objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+            return None
 
-    def post(self, request):
-        pass
+        if user and email_verification_token.check_token(user, token):
+            return user
+
+        return None
+
+    def get(self, request, uidb64, token):
+        user = self.get_user_from_email_verification_token(uidb64, token)
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return redirect('login')

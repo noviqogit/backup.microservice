@@ -9,7 +9,3 @@ class CustomUserCreationForm(UserCreationForm):
         model = CustomUser
         fields = ('email',)
         field_classes = {"email": EmailField}
-
-
-class ConfirmationForm:
-    pass

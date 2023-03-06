@@ -22,7 +22,7 @@ urlpatterns = [
     path('', LoginView.as_view(), name='login'),
     # path('logout', name='logout'),
     path('registration', RegistrationView.as_view(), name='registration'),
-    path('registration/<int:id>', ConfirmationView.as_view(), name='confirmation'),
+    path('activate/<uidb64>/<token>', ConfirmationView.as_view(), name='activate'),
 ]
 
 # from django.contrib.auth import views
