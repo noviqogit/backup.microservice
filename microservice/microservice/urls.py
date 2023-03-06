@@ -21,8 +21,8 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path('', LoginView.as_view(), name='login'),
     # path('logout', name='logout'),
-    path('registartion', RegistrationView.as_view(), name='registration'),
-    path('registartion/<int:id>', ConfirmationView.as_view(), name='confirmation'),
+    path('registration', RegistrationView.as_view(), name='registration'),
+    path('registration/<int:id>', ConfirmationView.as_view(), name='confirmation'),
 ]
 
 # from django.contrib.auth import views
