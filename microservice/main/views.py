@@ -39,18 +39,18 @@ class RegistrationView(View):
     def post(self, request):
         form = self.form(request.POST)
         if form.is_valid():
-            form.save()
-            user = CustomUser.objects.get(email=form.cleaned_data['email'])
-            self._send_email_verification(user)
-            return render(request, self.form, context={'email': user.email})
-        return render(request, self.form, context={'form': form})
+            user = CustomUser.objects.create_user(email=form.cleaned_data['email'],
+                                                  password=form.cleaned_data["password1"])
+            self.send_email_verification(user)
+            return render(request, self.success, context={'email': user.email})
 
-    def _send_email_verification(self, user: CustomUser):
+        return render(request, self.template, context={'form': form})
+
+    def send_email_verification(self, user: CustomUser):
         current_site = get_current_site(self.request)
         subject = 'Activate Your Account'
         body = render_to_string(
-            'emails/email_verification.html',
-            {
+            'main/email_verification.html', context={
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': email_verification_token.make_token(user),
