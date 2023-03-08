@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model, login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 
 from .forms import CustomUserCreationForm
 from .models import CustomUser
@@ -18,12 +19,29 @@ from .emails.tokens import email_verification_token
 
 
 class LoginView(View):
+    form = AuthenticationForm
+    template = 'main/login.html'
+    success = ''
 
     def get(self, request):
-        pass
+        if request.user.is_authenticated:
+            return HttpResponse('homepage')
+
+        return render(request, self.template, {'form': self.form})
 
     def post(self, request):
-        pass
+        form = self.form(request=request, data=request.POST)
+        if form.is_valid():
+            user = authenticate(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password'],
+            )
+
+            if user is not None:
+                login(request, user)
+                return HttpResponse('homepage')
+
+        return render(request, self.template, {'form': form})
 
 
 # from django.views.generic.edit import CreateView
@@ -33,8 +51,7 @@ class RegistrationView(View):
     success = 'main/confirmation.html'
 
     def get(self, request):
-        form = self.form()
-        return render(request, self.template, context={'form': form})
+        return render(request, self.template, context={'form': self.form()})
 
     def post(self, request):
         form = self.form(request.POST)
