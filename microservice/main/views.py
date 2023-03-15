@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, HttpResponse
+from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -15,7 +15,16 @@ from django.core.mail import EmailMessage
 from .emails.tokens import email_verification_token
 
 
-# Create your views here.
+class MainView(View):
+    form = False
+    template = ''
+    success = ''
+
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
 
 
 class LoginView(View):
@@ -25,7 +34,7 @@ class LoginView(View):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return HttpResponse('homepage')
+            return redirect('main')
 
         return render(request, self.template, {'form': self.form})
 
@@ -39,9 +48,21 @@ class LoginView(View):
 
             if user is not None:
                 login(request, user)
-                return HttpResponse('homepage')
+                return redirect('main')
 
         return render(request, self.template, {'form': form})
+
+
+class LogoutView(View):
+    form = False
+    template = ''
+    success = ''
+
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
 
 
 # from django.views.generic.edit import CreateView
