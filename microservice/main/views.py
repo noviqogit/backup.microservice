@@ -28,14 +28,16 @@ class PhoneView(LoginRequiredMixin, View):
     def post(self, request):
         form = self.form(request.POST)
         if form.is_valid():
-            Phones(phone=form.cleaned_data['phone'], user=request.user).save()
+            phone = Phones(phone=form.cleaned_data['phone'], user=request.user)
+            phone.save()
+            # TODO phone in url parametr
             return redirect('telegram')
         return render(request, self.template, context={'form': form})
 
 
 class TelegramView(LoginRequiredMixin, View):
     form = AddTelegramCodeForm
-    template = 'main/phone.html'
+    template = 'main/telegram.html'
     login_url = '/login'
     redirect_field_name = 'login'
 
@@ -45,7 +47,8 @@ class TelegramView(LoginRequiredMixin, View):
     def post(self, request):
         form = self.form(request.POST)
         if form.is_valid():
-            Phones(phone=form.cleaned_data['phone'], user=request.user).save()
+            # TODO telegram-api libary
+            code = form.cleaned_data['phone']
             return redirect('download')
         return render(request, self.template, context={'form': form})
 
@@ -77,6 +80,7 @@ class LoginView(View):
 
 
 class LogoutView(View):
+    # TODO logout bottom
     form = False
     template = ''
     success = ''
