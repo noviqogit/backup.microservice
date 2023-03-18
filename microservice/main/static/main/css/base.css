@@ -39,6 +39,8 @@ h1 {
   font-size: 28px;
 }
 
+input[type="tel"],
+input[type="text"],
 input[type="password"],
 input[type="email"] {
   display: block;
@@ -55,6 +57,8 @@ input[type="email"] {
   transition: 0.2s ease;
 }
 
+input[type="tel"],
+input[type="text"],
 input[type="password"]:focus,
 input[type="email"]:focus {
   border-bottom: 2px solid #16a085;
@@ -103,4 +107,11 @@ input[type="submit"]:active {
   background-size: cover;
   background-position: center;
   border-radius: 0 2px 2px 0;
+}
+
+#redirect_buttom {
+  background: url('https://goo.gl/YbktSj');
+  border: 2px solid #16a085;
+  color: #16a085
+
 }

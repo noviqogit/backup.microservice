@@ -1,12 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.contrib.auth import get_user_model, login, authenticate
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import AuthenticationForm
 
-from .forms import CustomUserCreationForm
-from .models import CustomUser
+from .forms import CustomUserCreationForm, AddPhoneNumberForm, AddTelegramCodeForm
+from .models import CustomUser, Phones
 
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -15,16 +16,38 @@ from django.core.mail import EmailMessage
 from .emails.tokens import email_verification_token
 
 
-class MainView(View):
-    form = False
-    template = ''
-    success = ''
+class PhoneView(LoginRequiredMixin, View):
+    form = AddPhoneNumberForm
+    template = 'main/phone.html'
+    login_url = '/login'
+    redirect_field_name = 'login'
 
     def get(self, request):
-        pass
+        return render(request, self.template, context={'form': self.form()})
 
     def post(self, request):
-        pass
+        form = self.form(request.POST)
+        if form.is_valid():
+            Phones(phone=form.cleaned_data['phone'], user=request.user).save()
+            return redirect('telegram')
+        return render(request, self.template, context={'form': form})
+
+
+class TelegramView(LoginRequiredMixin, View):
+    form = AddTelegramCodeForm
+    template = 'main/phone.html'
+    login_url = '/login'
+    redirect_field_name = 'login'
+
+    def get(self, request):
+        return render(request, self.template, context={'form': self.form()})
+
+    def post(self, request):
+        form = self.form(request.POST)
+        if form.is_valid():
+            Phones(phone=form.cleaned_data['phone'], user=request.user).save()
+            return redirect('download')
+        return render(request, self.template, context={'form': form})
 
 
 class LoginView(View):
@@ -34,7 +57,7 @@ class LoginView(View):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect('main')
+            return redirect('phone')
 
         return render(request, self.template, {'form': self.form})
 
@@ -48,7 +71,7 @@ class LoginView(View):
 
             if user is not None:
                 login(request, user)
-                return redirect('main')
+                return redirect('phone')
 
         return render(request, self.template, {'form': form})
 
@@ -116,4 +139,4 @@ class ConfirmationView(View):
         user.is_active = True
         user.save()
         login(request, user)
-        return redirect('login')
+        return redirect('phone')

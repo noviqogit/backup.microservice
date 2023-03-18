@@ -68,3 +68,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 class Phones(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     phone = PhoneNumberField(null=False, blank=True, region='RU')
+
+    def __str__(self):
+        return f'{self.user.email}, {self.phone}'
