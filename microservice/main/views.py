@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, HttpResponse
+from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -28,10 +28,9 @@ class PhoneView(LoginRequiredMixin, View):
     def post(self, request):
         form = self.form(request.POST)
         if form.is_valid():
-            phone = Phones(phone=form.cleaned_data['phone'], user=request.user)
-            phone.save()
-            # TODO phone in url parametr
-            return redirect('telegram')
+            phone = form.cleaned_data['phone']
+            Phones(phone=phone, user=request.user).save()
+            return redirect('telegram', phone=phone)
         return render(request, self.template, context={'form': form})
 
 
@@ -41,14 +40,13 @@ class TelegramView(LoginRequiredMixin, View):
     login_url = '/login'
     redirect_field_name = 'login'
 
-    def get(self, request):
+    def get(self, request, phone):
         return render(request, self.template, context={'form': self.form()})
 
     def post(self, request):
         form = self.form(request.POST)
         if form.is_valid():
-            # TODO telegram-api libary
-            code = form.cleaned_data['phone']
+            code = form.cleaned_data['code']
             return redirect('download')
         return render(request, self.template, context={'form': form})
 

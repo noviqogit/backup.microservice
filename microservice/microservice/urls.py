@@ -15,7 +15,7 @@ Including another URLconf
 """
 # from django.contrib import admin
 from django.urls import path
-from main.views import PhoneView, LoginView, LogoutView, RegistrationView, ConfirmationView
+from main.views import PhoneView, LoginView, LogoutView, RegistrationView, ConfirmationView, TelegramView
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
@@ -23,9 +23,9 @@ urlpatterns = [
     path('logout', LogoutView.as_view(), name='logout'),
     path('registration', RegistrationView.as_view(), name='registration'),
     path('activate/<uidb64>/<token>', ConfirmationView.as_view(), name='activate'),
-    path('phone', PhoneView.as_view(), name='phone'),
-    path('phone/telegram', PhoneView.as_view(), name='telegram'),
-    path('phone/telegram/download', PhoneView.as_view(), name='download'),
+    path('', PhoneView.as_view(), name='phone'),
+    path('<str:phone>', TelegramView.as_view(), name='telegram'),
+    path('download', PhoneView.as_view(), name='download'),
 ]
 
 # from django.contrib.auth import views
