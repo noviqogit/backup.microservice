@@ -17,11 +17,12 @@ def main():
     for chat_id in chats:
         params = {'chat_id': chat_id,
                   'from_message_id': 0,
-                  # 'offset': -1,
-                  'limit': 10}
+                  'offset': 0,
+                  'limit': 10,
+                  'only_local': False}
         result = tg.call_method('getChatHistory', params)
         result.wait()
-        print(result.update['messages'][0])
+        print(result.update)
     tg.stop()
 
 
