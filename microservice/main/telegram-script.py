@@ -1,5 +1,6 @@
 from telegram.client import Telegram
 from main.selfkeys import api_id, api_hash, phone, SECRET_KEY
+import time
 
 
 def main():
@@ -15,14 +16,15 @@ def main():
     response.wait()
     chats = response.update['chat_ids']
     for chat_id in chats:
-        params = {'chat_id': chat_id,
-                  'from_message_id': 0,
-                  'offset': 0,
-                  'limit': 10,
-                  'only_local': False}
-        result = tg.call_method('getChatHistory', params)
-        result.wait()
-        print(result.update)
+        message_id = 0
+        while True:
+            chat_messages = tg.get_chat_history(chat_id, limit=100, from_message_id=message_id)
+            chat_messages.wait()
+            if chat_messages.error or not chat_messages.update['messages']:
+                break
+            message_id = chat_messages.update['messages'][0]['id']
+            print(chat_id)
+            time.sleep(0.1)
     tg.stop()
 
 

@@ -20,7 +20,7 @@ from main.views import PhoneView, LoginView, LogoutView, RegistrationView, Confi
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('login', LoginView.as_view(), name='login'),
-    path('logout', LogoutView.as_view(), name='logout'),
+    # path('logout', LogoutView.as_view(), name='logout'),
     path('registration', RegistrationView.as_view(), name='registration'),
     path('activate/<uidb64>/<token>', ConfirmationView.as_view(), name='activate'),
     path('', PhoneView.as_view(), name='phone'),

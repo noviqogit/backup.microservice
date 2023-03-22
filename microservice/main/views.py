@@ -77,17 +77,16 @@ class LoginView(View):
         return render(request, self.template, {'form': form})
 
 
-class LogoutView(View):
-    # TODO logout bottom
-    form = False
-    template = ''
-    success = ''
-
-    def get(self, request):
-        pass
-
-    def post(self, request):
-        pass
+# class LogoutView(View):
+#     # TODO logout bottom
+#     template = ''
+#     success = ''
+#
+#     def get(self, request):
+#         pass
+#
+#     def post(self, request):
+#         pass
 
 
 # from django.views.generic.edit import CreateView
