@@ -71,3 +71,14 @@ class Phones(models.Model):
 
     def __str__(self):
         return f'{self.user.email}, {self.phone}'
+
+
+class Chats(models.Model):
+    chat_id = models.CharField(max_length=128)
+
+
+class Messages(models.Model):
+    chat_id = models.ForeignKey(Chats, on_delete=models.CASCADE)
+    from_id = models.CharField(max_length=128)
+    date = models.CharField(max_length=128)
+    text = models.TextField(max_length=4096)

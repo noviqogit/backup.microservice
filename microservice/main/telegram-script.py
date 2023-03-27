@@ -1,7 +1,6 @@
 from telegram.client import Telegram
 from main.selfkeys import api_id, api_hash, phone, SECRET_KEY
-import time
-from threading import Thread
+from .models import Messages
 
 
 def main():
@@ -16,25 +15,31 @@ def main():
     response = tg.get_chats()
     response.wait()
     chats = response.update['chat_ids']
-    chat_history = []
     for chat_id in chats:
-        thread = Thread(target=parse, args=(chat_id, tg))
-        chat_history.append(thread.run())
-    for thread in chat_history:
-        print(thread)
+        parse(chat_id, tg)
     tg.stop()
 
 
 def parse(chat_id, tg):
-    message_id = 0
+    last_message_id = 0
     while True:
-        chat_messages = tg.get_chat_history(chat_id, limit=100, from_message_id=message_id)
+        chat_messages = tg.get_chat_history(chat_id, from_message_id=last_message_id)
         chat_messages.wait()
-        if chat_messages.error or not chat_messages.update['messages']:
+        if chat_messages.error:
             break
-        message_id = chat_messages.update['messages'][0]['id']
-        print(chat_id)
-        time.sleep(0.1)
+        messages = chat_messages.update['messages']
+        if not messages:
+            break
+        for message in messages:
+            _type = message['content']['@type']
+            if _type == 'messageText':
+                pass
+                # Messages(chat_id=chat_id, from_id=None)
+            # if _type == 'messagePhoto':
+            #     print(message['content']['caption'])
+            # if _type == 'messageDocument':
+            #     print(message)
+        last_message_id = messages[-1]['id']
 
 
 if __name__ == '__main__':
