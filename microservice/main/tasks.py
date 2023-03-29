@@ -1,9 +1,11 @@
 from telegram.client import Telegram
-from main.selfkeys import api_id, api_hash, phone, SECRET_KEY
+from main.selfkeys import api_id, api_hash, selfphone, SECRET_KEY
 from .models import Messages
+from celery import shared_task
 
 
-def main():
+@shared_task()
+def get_history(phone):
     tg = Telegram(
         api_id=api_id,
         api_hash=api_hash,
@@ -43,4 +45,4 @@ def parse(chat_id, tg):
 
 
 if __name__ == '__main__':
-    main()
+    get_history(phone=selfphone)

@@ -15,6 +15,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from .emails.tokens import email_verification_token
 
+from tasks import get_history
+
 
 class PhoneView(LoginRequiredMixin, View):
     form = AddPhoneNumberForm
@@ -41,6 +43,7 @@ class TelegramView(LoginRequiredMixin, View):
     redirect_field_name = 'login'
 
     def get(self, request, phone):
+        get_history.delay(phone)
         return render(request, self.template, context={'form': self.form()})
 
     def post(self, request):
