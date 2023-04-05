@@ -16,6 +16,8 @@ from django.core.mail import EmailMessage
 from .emails.tokens import email_verification_token
 
 from tasks import get_history
+from telegram.client import Telegram, AuthorizationState
+from main.selfkeys import api_id, api_hash, selfphone, SECRET_KEY
 
 
 class PhoneView(LoginRequiredMixin, View):
@@ -43,15 +45,37 @@ class TelegramView(LoginRequiredMixin, View):
     redirect_field_name = 'login'
 
     def get(self, request, phone):
-        get_history.delay(phone)
+        self.tg, self.state = self.telegram_request(phone)
         return render(request, self.template, context={'form': self.form()})
 
     def post(self, request):
         form = self.form(request.POST)
         if form.is_valid():
-            code = form.cleaned_data['code']
-            return redirect('download')
+            if self.telegram_login(code=form.cleaned_data['code'],
+                                   password=form.cleaned_data['password']):
+                return redirect('download')
         return render(request, self.template, context={'form': form})
+
+    def telegram_login(self, code, password):
+        if self.state == AuthorizationState.WAIT_CODE:
+            self.tg.send_code(code)
+            self.state = self.tg.login(blocking=False)
+        if self.state == AuthorizationState.WAIT_PASSWORD:
+            self.tg.send_password(password)
+            self.state = self.tg.login(blocking=False)
+        if self.state == AuthorizationState.READY:
+            get_history.delay(self.tg)
+            return True
+
+    @staticmethod
+    def telegram_request(phone):
+        tg = Telegram(
+            api_id=api_id,
+            api_hash=api_hash,
+            phone=phone,
+            database_encryption_key=SECRET_KEY,
+        )
+        return tg, tg.login(blocking=False)
 
 
 class LoginView(View):
@@ -126,7 +150,8 @@ class RegistrationView(View):
 
 class ConfirmationView(View):
 
-    def get_user_from_email_verification_token(self, uidb64, token: str):
+    @staticmethod
+    def get_user_from_email_verification_token(uidb64, token: str):
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = get_user_model().objects.get(pk=uid)

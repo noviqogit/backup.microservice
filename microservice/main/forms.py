@@ -18,3 +18,4 @@ class AddPhoneNumberForm(ModelForm):
 
 class AddTelegramCodeForm(Form):
     code = CharField(min_length=6, max_length=32)
+    password = CharField(min_length=6, max_length=32)

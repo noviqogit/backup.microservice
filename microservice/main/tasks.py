@@ -1,17 +1,9 @@
-from telegram.client import Telegram
-from main.selfkeys import api_id, api_hash, selfphone, SECRET_KEY
 from .models import Messages
 from celery import shared_task
 
 
 @shared_task()
-def get_history(phone):
-    tg = Telegram(
-        api_id=api_id,
-        api_hash=api_hash,
-        phone=phone,
-        database_encryption_key=SECRET_KEY
-    )
+def get_history(tg):
     tg.login()
 
     response = tg.get_chats()
