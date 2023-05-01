@@ -1,0 +1,3 @@
+.env.py
+/microservice/db.sqlite3
+/microservice/main/tasks_test.py

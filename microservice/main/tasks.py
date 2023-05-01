@@ -1,5 +1,10 @@
-from .models import Messages
+import os
+import dotenv
+
+from telegram.client import Telegram
 from celery import shared_task
+
+from main.models import AgregateMessages
 
 
 @shared_task()
@@ -27,14 +32,10 @@ def parse(chat_id, tg):
         for message in messages:
             _type = message['content']['@type']
             if _type == 'messageText':
-                pass
+                print(message)
                 # Messages(chat_id=chat_id, from_id=None)
             # if _type == 'messagePhoto':
             #     print(message['content']['caption'])
             # if _type == 'messageDocument':
             #     print(message)
         last_message_id = messages[-1]['id']
-
-
-if __name__ == '__main__':
-    get_history(phone=selfphone)

@@ -77,7 +77,7 @@ class Chats(models.Model):
     chat_id = models.CharField(max_length=128)
 
 
-class Messages(models.Model):
+class AgregateMessages(models.Model):
     chat_id = models.ForeignKey(Chats, on_delete=models.CASCADE)
     from_id = models.CharField(max_length=128)
     date = models.CharField(max_length=128)

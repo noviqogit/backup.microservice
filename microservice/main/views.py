@@ -1,13 +1,13 @@
+import os
+
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
+
 from django.contrib.auth import get_user_model, login, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import AuthenticationForm
-
-from .forms import CustomUserCreationForm, AddPhoneNumberForm, AddTelegramCodeForm
-from .models import CustomUser, Phones
 
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -15,9 +15,11 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from .emails.tokens import email_verification_token
 
-from tasks import get_history
+from .tasks import get_history
 from telegram.client import Telegram, AuthorizationState
-from main.selfkeys import api_id, api_hash, selfphone, SECRET_KEY
+
+from .forms import CustomUserCreationForm, AddPhoneNumberForm, AddTelegramCodeForm
+from .models import CustomUser, Phones
 
 
 class PhoneView(LoginRequiredMixin, View):
@@ -54,6 +56,7 @@ class TelegramView(LoginRequiredMixin, View):
             if self.telegram_login(code=form.cleaned_data['code'],
                                    password=form.cleaned_data['password']):
                 return redirect('download')
+            form.add_error('code', 'Code (or password) is not correct.')
         return render(request, self.template, context={'form': form})
 
     def telegram_login(self, code, password):
@@ -66,9 +69,13 @@ class TelegramView(LoginRequiredMixin, View):
         if self.state == AuthorizationState.READY:
             get_history.delay(self.tg)
             return True
+        return False
 
     @staticmethod
     def telegram_request(phone):
+        api_id = os.environ['api_id']
+        api_hash = os.environ['api_hash']
+        SECRET_KEY = os.environ['SECRET_KEY']
         tg = Telegram(
             api_id=api_id,
             api_hash=api_hash,
