@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import UserCreationForm
 from main.models import CustomUser, Phones
-from django.forms import EmailField, ModelForm, CharField, Form
+from django.forms import EmailField, ModelForm, CharField, Form, PasswordInput
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -17,5 +17,5 @@ class AddPhoneNumberForm(ModelForm):
 
 
 class AddTelegramCodeForm(Form):
-    code = CharField(min_length=6, max_length=32)
-    password = CharField(min_length=6, max_length=32)
+    code = CharField(min_length=5, max_length=32)
+    password = CharField(min_length=6, max_length=32, widget=PasswordInput)

@@ -50,7 +50,7 @@ class TelegramView(LoginRequiredMixin, View):
         self.tg, self.state = self.telegram_request(phone)
         return render(request, self.template, context={'form': self.form()})
 
-    def post(self, request):
+    def post(self, request, phone):
         form = self.form(request.POST)
         if form.is_valid():
             if self.telegram_login(code=form.cleaned_data['code'],
@@ -111,19 +111,6 @@ class LoginView(View):
         return render(request, self.template, {'form': form})
 
 
-# class LogoutView(View):
-#     # TODO logout bottom
-#     template = ''
-#     success = ''
-#
-#     def get(self, request):
-#         pass
-#
-#     def post(self, request):
-#         pass
-
-
-# from django.views.generic.edit import CreateView
 class RegistrationView(View):
     form = CustomUserCreationForm
     template = 'main/registration.html'
