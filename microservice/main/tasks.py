@@ -1,7 +1,3 @@
-import os
-import dotenv
-
-from telegram.client import Telegram
 from celery import shared_task
 
 from main.models import AgregateMessages
@@ -32,10 +28,16 @@ def parse(chat_id, tg):
         for message in messages:
             _type = message['content']['@type']
             if _type == 'messageText':
-                print(message)
-                # Messages(chat_id=chat_id, from_id=None)
-            # if _type == 'messagePhoto':
-            #     print(message['content']['caption'])
-            # if _type == 'messageDocument':
-            #     print(message)
+                agregate_text_message(message)
         last_message_id = messages[-1]['id']
+
+
+def agregate_text_message(message):
+    chat_id = message['chat_id']
+    date = message['date']
+    text = message['content']['text']['text']
+
+    key = 'user_id' if message['sender_id']['@type'] == 'messageSenderUser' else 'chat_id'
+    from_id = message['sender_id'][key]
+
+    AgregateMessages(chat_id=chat_id, from_id=from_id, date=date, text=text)
