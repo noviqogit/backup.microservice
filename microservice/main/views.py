@@ -47,29 +47,31 @@ class TelegramView(LoginRequiredMixin, View):
     redirect_field_name = 'login'
 
     def get(self, request, phone):
-        self.tg, self.state = self.telegram_request(phone)
+        tg = self.telegram_request(phone)
+        tg.login(blocking=False)
         return render(request, self.template, context={'form': self.form()})
 
     def post(self, request, phone):
         form = self.form(request.POST)
         if form.is_valid():
             if self.telegram_login(code=form.cleaned_data['code'],
-                                   password=form.cleaned_data['password']):
+                                   password=form.cleaned_data['password'],
+                                   phone=phone):
                 return redirect('download')
             form.add_error('code', 'Code (or password) is not correct.')
         return render(request, self.template, context={'form': form})
 
-    def telegram_login(self, code, password):
-        if self.state == AuthorizationState.WAIT_CODE:
-            self.tg.send_code(code)
-            self.state = self.tg.login(blocking=False)
-        if self.state == AuthorizationState.WAIT_PASSWORD:
-            self.tg.send_password(password)
-            self.state = self.tg.login(blocking=False)
-        if self.state == AuthorizationState.READY:
-            get_history.delay(self.tg)
+    def telegram_login(self, code, password, phone):
+        tg = self.telegram_request(phone)
+        tg.login(blocking=False)
+        tg.send_code(code)
+        state = tg.login(blocking=False)
+        if state == AuthorizationState.WAIT_PASSWORD:
+            tg.send_password(password)
+            state = tg.login(blocking=False)
+        if state == AuthorizationState.READY:
+            get_history.delay(tg)
             return True
-        return False
 
     @staticmethod
     def telegram_request(phone):
@@ -82,7 +84,7 @@ class TelegramView(LoginRequiredMixin, View):
             phone=phone,
             database_encryption_key=SECRET_KEY,
         )
-        return tg, tg.login(blocking=False)
+        return tg
 
 
 class LoginView(View):
