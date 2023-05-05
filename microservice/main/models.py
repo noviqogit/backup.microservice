@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import EmailValidator
 from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib.auth.hashers import make_password
 
 
 # Create your models here.
@@ -68,6 +69,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 class Phones(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     phone = PhoneNumberField(null=False, blank=True, region='RU')
+    code = models.CharField(null=False, blank=True, max_length=128)
+    tg_password = models.CharField(null=False, blank=True, max_length=128)
 
     def __str__(self):
         return f'{self.user.email}, {self.phone}'

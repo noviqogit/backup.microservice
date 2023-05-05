@@ -1,5 +1,3 @@
-import os
-
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
@@ -15,15 +13,16 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from .emails.tokens import email_verification_token
 
-from .tasks import get_history
-from telegram.client import Telegram, AuthorizationState
+import os
 
-from .forms import CustomUserCreationForm, AddPhoneNumberForm, AddTelegramCodeForm
+from .tasks import get_history
+
+from .forms import CustomUserCreationForm, PhoneNumberForm, AddTelegramCodeForm
 from .models import CustomUser, Phones
 
 
 class PhoneView(LoginRequiredMixin, View):
-    form = AddPhoneNumberForm
+    form = PhoneNumberForm
     template = 'main/phone.html'
     login_url = '/login'
     redirect_field_name = 'login'
@@ -33,10 +32,11 @@ class PhoneView(LoginRequiredMixin, View):
 
     def post(self, request):
         form = self.form(request.POST)
+
         if form.is_valid():
             phone = form.cleaned_data['phone']
-            Phones(phone=phone, user=request.user).save()
             return redirect('telegram', phone=phone)
+
         return render(request, self.template, context={'form': form})
 
 
@@ -47,44 +47,24 @@ class TelegramView(LoginRequiredMixin, View):
     redirect_field_name = 'login'
 
     def get(self, request, phone):
-        tg = self.telegram_request(phone)
-        tg.login(blocking=False)
+        api_id = os.environ['api_id']
+        api_hash = os.environ['api_hash']
+        key = os.environ['SECRET_KEY']
+        get_history.delay(phone, api_id, api_hash, key)
         return render(request, self.template, context={'form': self.form()})
 
     def post(self, request, phone):
         form = self.form(request.POST)
+
         if form.is_valid():
-            if self.telegram_login(code=form.cleaned_data['code'],
-                                   password=form.cleaned_data['password'],
-                                   phone=phone):
-                return redirect('download')
-            form.add_error('code', 'Code (or password) is not correct.')
+            code = form.cleaned_data['code']
+            tg_password = form.cleaned_data['tg_password']
+            Phones(phone=phone, user=request.user, code=code, tg_password=tg_password).save()
+
+            return redirect('download')
+
+        form.add_error('code', 'Code (or password) is not correct.')
         return render(request, self.template, context={'form': form})
-
-    def telegram_login(self, code, password, phone):
-        tg = self.telegram_request(phone)
-        tg.login(blocking=False)
-        tg.send_code(code)
-        state = tg.login(blocking=False)
-        if state == AuthorizationState.WAIT_PASSWORD:
-            tg.send_password(password)
-            state = tg.login(blocking=False)
-        if state == AuthorizationState.READY:
-            get_history.delay(tg)
-            return True
-
-    @staticmethod
-    def telegram_request(phone):
-        api_id = os.environ['api_id']
-        api_hash = os.environ['api_hash']
-        SECRET_KEY = os.environ['SECRET_KEY']
-        tg = Telegram(
-            api_id=api_id,
-            api_hash=api_hash,
-            phone=phone,
-            database_encryption_key=SECRET_KEY,
-        )
-        return tg
 
 
 class LoginView(View):
@@ -100,6 +80,7 @@ class LoginView(View):
 
     def post(self, request):
         form = self.form(request=request, data=request.POST)
+
         if form.is_valid():
             user = authenticate(
                 username=form.cleaned_data['username'],
@@ -123,6 +104,7 @@ class RegistrationView(View):
 
     def post(self, request):
         form = self.form(request.POST)
+
         if form.is_valid():
             user = CustomUser.objects.create_user(email=form.cleaned_data['email'],
                                                   password=form.cleaned_data["password1"])
