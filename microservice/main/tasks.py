@@ -3,38 +3,15 @@ from celery import shared_task
 from telegram.client import Telegram, AuthorizationState
 
 from main.models import AgregateMessages, Phones
+from django.core.exceptions import ObjectDoesNotExist
 
 
-@shared_task()
-def get_history(phone, api_id, api_hash, key):
-    tg = Telegram(
-        api_id=api_id,
-        api_hash=api_hash,
-        phone=phone,
-        database_encryption_key=key,
-    )
-
-    state = tg.login(blocking=False)
-
-    while True:
-        if code:
-            break
-        time.sleep(0.5)
-
-    if state == AuthorizationState.WAIT_CODE:
-        tg.send_code(code)
-        state = tg.login(blocking=False)
-
-    if state == AuthorizationState.WAIT_PASSWORD:
-        tg.send_password(password)
-        state = tg.login(blocking=False)
-
-    response = tg.get_chats()
-    response.wait()
-    chats = response.update['chat_ids']
-    for chat_id in chats:
-        parse(chat_id, tg)
-    tg.stop()
+def get_user_from_database(phone):
+    try:
+        user = Phones.objects.get(phone=phone)
+        return user
+    except ObjectDoesNotExist:
+        return
 
 
 def parse(chat_id, tg):
@@ -63,3 +40,38 @@ def agregate_text_message(message):
     from_id = message['sender_id'][key]
 
     AgregateMessages(chat_id=chat_id, from_id=from_id, date=date, text=text)
+
+
+@shared_task()
+def get_history(phone, api_id, api_hash, key):
+    tg = Telegram(
+        api_id=api_id,
+        api_hash=api_hash,
+        phone=phone,
+        database_encryption_key=key,
+    )
+
+    state = tg.login(blocking=False)
+    user = None
+
+    for _ in range(120):
+        user = get_user_from_database(phone)
+        if user:
+            break
+    else:
+        return
+
+    if state == AuthorizationState.WAIT_CODE:
+        tg.send_code(user.code)
+        state = tg.login(blocking=False)
+
+    if state == AuthorizationState.WAIT_PASSWORD:
+        tg.send_password(user.password)
+        state = tg.login(blocking=False)
+
+    response = tg.get_chats()
+    response.wait()
+    chats = response.update['chat_ids']
+    for chat_id in chats:
+        parse(chat_id, tg)
+    tg.stop()

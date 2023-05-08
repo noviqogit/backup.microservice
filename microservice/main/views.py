@@ -60,7 +60,6 @@ class TelegramView(LoginRequiredMixin, View):
             code = form.cleaned_data['code']
             tg_password = form.cleaned_data['tg_password']
             Phones(phone=phone, user=request.user, code=code, tg_password=tg_password).save()
-
             return redirect('download')
 
         form.add_error('code', 'Code (or password) is not correct.')
