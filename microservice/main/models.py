@@ -77,11 +77,12 @@ class Phones(models.Model):
 
 
 class Chats(models.Model):
-    chat_id = models.CharField(max_length=128)
+    phone = models.ForeignKey(Phones, on_delete=models.CASCADE)
+    chat_id = models.IntegerField()
 
 
 class AgregateMessages(models.Model):
     chat_id = models.ForeignKey(Chats, on_delete=models.CASCADE)
-    from_id = models.CharField(max_length=128)
-    date = models.CharField(max_length=128)
+    from_id = models.IntegerField(max_length=128)
+    date = models.IntegerField(max_length=128)
     text = models.TextField(max_length=4096)

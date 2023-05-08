@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib.auth import get_user_model, login, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -59,11 +60,25 @@ class TelegramView(LoginRequiredMixin, View):
         if form.is_valid():
             code = form.cleaned_data['code']
             tg_password = form.cleaned_data['tg_password']
-            Phones(phone=phone, user=request.user, code=code, tg_password=tg_password).save()
+            user_phone = self.get_user_phone(request.user)
+            if user_phone:
+                user_phone.code = code
+                user_phone.tg_password = tg_password
+                user_phone.save()
+            else:
+                Phones(phone=phone, user=request.user, code=code, tg_password=tg_password).save()
             return redirect('download')
 
         form.add_error('code', 'Code (or password) is not correct.')
         return render(request, self.template, context={'form': form})
+
+    @staticmethod
+    def get_user_phone(user):
+        try:
+            phone = Phones.objects.get(user=user)
+            return phone
+        except ObjectDoesNotExist:
+            return
 
 
 class LoginView(View):
