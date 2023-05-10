@@ -1,6 +1,6 @@
 import logging
 import time
-from microservice.celery import app
+from celery import shared_task
 from telegram.client import Telegram, AuthorizationState
 
 from main.models import AgregateMessages, Phones, Chats
@@ -54,7 +54,7 @@ def agregate_text_message(chat, message):
     AgregateMessages(chat_id=chat, from_id=from_id, date=date, text=text).save()
 
 
-@app.task
+@shared_task()
 def get_history(phone, api_id, api_hash, key):
     logger.info("Start")
     tg = Telegram(

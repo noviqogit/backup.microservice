@@ -51,7 +51,8 @@ class TelegramView(LoginRequiredMixin, View):
         api_id = os.environ['api_id']
         api_hash = os.environ['api_hash']
         key = os.environ['SECRET_KEY']
-        get_history.delay(phone, api_id, api_hash, key)
+        # TODO if phone in DB -> delete data
+        get_history.delay(phone=phone, api_id=api_id, api_hash=api_hash, key=key)
         return render(request, self.template, context={'form': self.form()})
 
     def post(self, request, phone):
